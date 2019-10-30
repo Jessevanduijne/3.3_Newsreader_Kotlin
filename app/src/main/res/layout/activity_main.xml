@@ -8,12 +8,7 @@
     tools:context=".MainActivity"
     android:orientation="vertical">
 
-    <RelativeLayout
-        style="@style/GenericProgressBackground"
-        android:id="@+id/loadingPanel">
-        <ProgressBar
-            style="@style/GenericProgressIndicator"/>
-    </RelativeLayout>
+
 
     <com.google.android.material.appbar.AppBarLayout
         android:layout_width="match_parent"
