@@ -11,7 +11,6 @@ import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
 import kotlinx.android.synthetic.main.articlelistitem.view.*
 import nl.vanduijne.jesse.model.Article
-import nl.vanduijne.jesse.model.OnBottomListener
 
 class ListAdapter (val context: Context, val items: ArrayList<Article>, val clickListener: ArticleClickListener): RecyclerView.Adapter<ListAdapter.ViewHolder>(){
 

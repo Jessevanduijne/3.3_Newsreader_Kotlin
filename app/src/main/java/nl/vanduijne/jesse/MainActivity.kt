@@ -66,7 +66,6 @@ class MainActivity : AppCompatActivity() {
 
                     val nextId = articles[lastVisibleItemPosition].Id - 1 // TODO: Get nextId from Articles class instead of Article
                     getNewArticles(nextId)
-                    loadingPanel.visibility = View.VISIBLE
                 }
             }
         })
@@ -82,7 +81,6 @@ class MainActivity : AppCompatActivity() {
                     val result = body?.Results
                     articles.addAll(result!!)
                     recyclerview.adapter!!.notifyDataSetChanged()
-                    loadingPanel.visibility = View.GONE
                 }
             }
 
@@ -103,7 +101,6 @@ class MainActivity : AppCompatActivity() {
                     val result = body?.Results
                     result?.toCollection(articles) // Make articles accessible for the recyclerview
                     recyclerview.adapter!!.notifyDataSetChanged()
-                    loadingPanel.visibility = View.GONE
                 }
                 else Log.e("HTTP Response", "Response is unsuccessful of empty")
             }
