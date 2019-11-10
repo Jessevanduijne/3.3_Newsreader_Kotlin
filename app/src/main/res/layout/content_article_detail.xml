@@ -29,7 +29,7 @@
                 android:layout_height="wrap_content"
                 android:layout_marginLeft="330dp"
                 android:layout_marginTop="-30dp"
-                app:srcCompat="@drawable/notliked" />
+                app:srcCompat="@drawable/ic_emptyheart" />
 
             <TextView
                 android:id="@+id/detailtitle"

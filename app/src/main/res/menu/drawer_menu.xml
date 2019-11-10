@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    tools:showIn="navigation_view">
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/login"
+            android:icon="@drawable/ic_login"
+            android:title="@string/login" />
+    </group>
+
+    <item android:title="@string/cat">
+        <menu>
+            <item
+                android:id="@+id/cat_algemeen"
+                android:icon="@drawable/ic_general"
+                android:title="@string/cat_algemeen" />
+            <item
+                android:id="@+id/cat_internet"
+                android:icon="@drawable/ic_internet"
+                android:title="@string/cat_internet" />
+            <item
+                android:id="@+id/cat_sport"
+                android:icon="@drawable/ic_sport"
+                android:title="@string/cat_sport" />
+            <item
+                android:id="@+id/cat_games"
+                android:icon="@drawable/ic_games"
+                android:title="@string/cat_games" />
+            <item
+                android:id="@+id/cat_opmerkelijk"
+                android:icon="@drawable/ic_opmerkelijk"
+                android:title="@string/cat_opmerkelijk" />
+            <item
+                android:id="@+id/cat_wetenschap"
+                android:icon="@drawable/wetenschap"
+                android:title="@string/cat_wetenschap" />
+        </menu>
+    </item>
+</menu>

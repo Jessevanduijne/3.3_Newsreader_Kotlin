@@ -15,7 +15,6 @@ interface ArticleService {
     @GET("api/articles")
     fun articles(): Call<Articles>
 
-
     @GET("api/articles/{id}?count=20")
     fun article(@Path("id") articleId: Int): Call<Articles>
 
