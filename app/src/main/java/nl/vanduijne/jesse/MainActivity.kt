@@ -1,6 +1,5 @@
 package nl.vanduijne.jesse
 
-import android.app.Activity
 import android.app.PendingIntent.getService
 import android.content.Intent
 import android.os.Bundle
@@ -8,45 +7,97 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
-import android.view.View
+import android.widget.Toast
+import androidx.appcompat.app.ActionBarDrawerToggle
+import androidx.core.view.GravityCompat
 import androidx.drawerlayout.widget.DrawerLayout
-import androidx.navigation.findNavController
 import androidx.navigation.ui.AppBarConfiguration
-import androidx.navigation.ui.navigateUp
-import androidx.navigation.ui.setupActionBarWithNavController
-import androidx.navigation.ui.setupWithNavController
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
-
+import kotlinx.android.synthetic.*
 import kotlinx.android.synthetic.main.activity_main.*
+import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.content_main.*
 import nl.vanduijne.jesse.model.Articles
 import nl.vanduijne.jesse.model.Article
+import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
 import retrofit2.Retrofit
 import retrofit2.converter.gson.GsonConverterFactory
+import java.util.concurrent.TimeUnit
 
-class MainActivity : AppCompatActivity() {
+
+class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
 
     private lateinit var appBarConfiguration: AppBarConfiguration
     private lateinit var linearLayoutManager: LinearLayoutManager
+    private lateinit var drawer: DrawerLayout
+
     private val lastVisibleItemPosition: Int
         get() = linearLayoutManager.findLastVisibleItemPosition()
     private val articles = ArrayList<Article>()
+    private val service = getService()
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+
+        // Link content to this class
         setContentView(R.layout.activity_main)
+
+        // Add toolbar
         setSupportActionBar(toolbar)
+
+        // Add drawer toggle
+        drawer = drawer_layout
+        val toggleableDrawer = ActionBarDrawerToggle(this, drawer, toolbar,
+            R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer.addDrawerListener(toggleableDrawer)
+        toggleableDrawer.syncState()
+
+        // Add button functionality for drawer
+        var navview = nav_view
+        navview.setNavigationItemSelectedListener(this)
+
+        if(savedInstanceState == null) {
+            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
+            navview.setCheckedItem(R.id.login)
+        }
 
 
         linearLayoutManager = LinearLayoutManager(this)
 
         getArticles()
         getScrollListener()
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.login -> supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
+            R.id.cat_algemeen -> Toast.makeText(this, "algemeen", Toast.LENGTH_SHORT).show()
+            else -> {
+                return false
+            }
+        }
+
+        drawer.closeDrawer(GravityCompat.START)
+
+        // Item will be selected after action is triggered --> always true
+        return true
+    }
+
+
+
+    override fun onBackPressed() {
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START)
+        }
+        else {
+            super.onBackPressed()
+        }
     }
 
     private fun getClickListener() : ArticleClickListener {
@@ -63,8 +114,8 @@ class MainActivity : AppCompatActivity() {
                 super.onScrollStateChanged(recyclerView, newState)
                 val totalItemCount = recyclerView.layoutManager!!.itemCount // recyclerView.adapter!!.getItemCount()
                 if(totalItemCount == lastVisibleItemPosition + 1 ) { // Plus one cause count = 20 and position is 19 (starts at 0)
-
-                    val nextId = articles[lastVisibleItemPosition].Id - 1 // TODO: Get nextId from Articles class instead of Article
+                    println("hitting the onscroll")
+                    val nextId = articles[lastVisibleItemPosition].Id - 1
                     getNewArticles(nextId)
                 }
             }
@@ -72,7 +123,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getNewArticles(nextId: Int){
-        val service = getService()
+
         val call = service.article(nextId)
         call.enqueue(object : Callback<Articles> {
             override fun onResponse(call: Call<Articles>, response: Response<Articles>) {
@@ -91,7 +142,7 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getArticles(){
-        val service = getService()
+        //val service = getService()
         val call = service.articles()
 
         call.enqueue(object: Callback<Articles> {
@@ -106,7 +157,7 @@ class MainActivity : AppCompatActivity() {
             }
 
             override fun onFailure(call: Call<Articles>, t: Throwable) {
-                Log.e("HTTP", "Couldn't fetch any data")
+                Log.e("HTTP", "Couldn't fetch any data: ")
             }
         })
 
@@ -117,8 +168,15 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun getService(): ArticleService {
+        val okHttpClient = OkHttpClient().newBuilder()
+            .connectTimeout(30, TimeUnit.SECONDS)
+            .readTimeout(30, TimeUnit.SECONDS)
+            .writeTimeout(30, TimeUnit.SECONDS)
+            .build()
+
         val retrofit = Retrofit.Builder()
             .baseUrl("http://inhollandbackend.azurewebsites.net/")
+            .client(okHttpClient)
             .addConverterFactory(GsonConverterFactory.create())
             .build()
 
