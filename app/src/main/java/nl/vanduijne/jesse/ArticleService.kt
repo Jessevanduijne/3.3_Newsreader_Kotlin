@@ -13,12 +13,15 @@ interface ArticleService {
     fun feeds(): Call<List<Category>>
 
     @GET("api/articles")
-    fun articles(): Call<Articles>
+    fun articles(@Query("count") count: Int,
+                 @Query("feed") feedId: Int?): Call<Articles>
 
-    @GET("api/articles/{id}?count=20")
-    fun article(@Path("id") articleId: Int): Call<Articles>
+    @GET("api/articles/{id}")
+    fun articlesById(@Path("id") articleId: Int,
+                    @Query("count") count: Int,
+                    @Query("feed") feedId: Int?)
+            : Call<Articles>
 
-    // TODO: Is this call complete? user & ID do have something to do with this call too
     @Multipart
     @PUT("api/articles/{id}//like")
     fun addLike(
