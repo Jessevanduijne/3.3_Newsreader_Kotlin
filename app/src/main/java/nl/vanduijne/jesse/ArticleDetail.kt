@@ -47,5 +47,4 @@ class ArticleDetail : AppCompatActivity() {
         }
         return super.onOptionsItemSelected(item)
     }
-
 }
