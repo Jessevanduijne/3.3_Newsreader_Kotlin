@@ -13,14 +13,19 @@ interface ArticleService {
     fun feeds(): Call<List<Category>>
 
     @GET("api/articles")
-    fun articles(@Query("count") count: Int,
-                 @Query("feed") feedId: Int?): Call<Articles>
+    fun articles(@Query("count") count: Int? = 20,
+                 @Query("feed") feedId: Int? = null
+    ): Call<Articles>
 
     @GET("api/articles/{id}")
     fun articlesById(@Path("id") articleId: Int,
-                    @Query("count") count: Int,
-                    @Query("feed") feedId: Int?)
-            : Call<Articles>
+                    @Query("count") count: Int? = 20,
+                    @Query("feed") feedId: Int? = null
+    ): Call<Articles>
+
+
+
+
 
     @Multipart
     @PUT("api/articles/{id}//like")

@@ -2,6 +2,12 @@
     <string name="app_name">Tijd voor actualiteit</string>
     <string name="action_settings">Settings</string>
 
+    <!-- Login screen: -->
+    <string name="login_label">Gebruikersnaam</string>
+    <string name="login_password">Wachtwoord</string>
+    <string name="login_button">Login</string>
+    <string name="register_button">Registreer</string>
+    <string name="nog_geen_account">Ik heb nog geen account</string>
 
     <!-- Navigation drawer: -->
     <string name="navigation_drawer_open">Open menu</string>

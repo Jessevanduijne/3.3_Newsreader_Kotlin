@@ -15,9 +15,8 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
-import kotlinx.android.synthetic.*
+import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
-import kotlinx.android.synthetic.main.activity_register.*
 import kotlinx.android.synthetic.main.content_main.*
 import nl.vanduijne.jesse.model.Articles
 import nl.vanduijne.jesse.model.Article
@@ -63,10 +62,9 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         navview.setNavigationItemSelectedListener(this)
 
         //if(savedInstanceState == null) {
-            supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
-            navview.setCheckedItem(R.id.login)
+            //supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
+            //navview.setCheckedItem(R.id.login)
         //}
-
 
         linearLayoutManager = LinearLayoutManager(this)
 
@@ -76,7 +74,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
         when(item.itemId) {
-            R.id.login -> supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
+            R.id.login -> {
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+            } //supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
             R.id.cat_algemeen -> Toast.makeText(this, "algemeen", Toast.LENGTH_SHORT).show()
             else -> {
                 return false
@@ -116,15 +117,20 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                 if(totalItemCount == lastVisibleItemPosition + 1 ) { // Plus one cause count = 20 and position is 19 (starts at 0)
                     println("hitting the onscroll")
                     val nextId = articles[lastVisibleItemPosition].Id - 1
-                    getNewArticles(nextId)
+                    getNewArticles(nextId = nextId)
                 }
             }
         })
     }
 
-    private fun getNewArticles(nextId: Int){
+    private fun getNewArticles(nextId: Int, feedId: Int? = 0){
+        val call: Call<Articles>
+        if(feedId != 0) {
+            call = service.articlesById(nextId, feedId = feedId)
+        }
 
-        val call = service.article(nextId)
+        else call = service.articlesById(nextId)
+
         call.enqueue(object : Callback<Articles> {
             override fun onResponse(call: Call<Articles>, response: Response<Articles>) {
                 if(response.isSuccessful && response.body() != null) {
@@ -134,23 +140,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     recyclerview.adapter!!.notifyDataSetChanged()
                 }
             }
-
             override fun onFailure(call: Call<Articles>, t: Throwable) {
                 Log.e("HTTP", "Couldn't fetch any data while trying to load more articles")
             }
         })
     }
 
-    private fun getArticles(nextId: Int? = 0, feedId: Int? = 0){
-
-        val call : Call<Articles>
-        if(nextId == 0) {
-            call = service.articles(20, null)
-        }
-        else {
-            call = service.articlesById(nextId!!.toInt(), 20, feedId)
-        }
-
+    private fun getArticles(){
+        val call = service.articles(20)
 
         call.enqueue(object: Callback<Articles> {
             override fun onResponse( call: Call<Articles>, response: Response<Articles>) {
@@ -168,7 +165,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             }
         })
 
-
+        // After articles are loaded, make them clickable:
         val articleClickListener = getClickListener()
         recyclerview.layoutManager = linearLayoutManager
         recyclerview.adapter = ListAdapter(this, articles, articleClickListener)
