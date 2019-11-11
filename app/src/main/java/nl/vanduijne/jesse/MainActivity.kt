@@ -62,10 +62,10 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         var navview = nav_view
         navview.setNavigationItemSelectedListener(this)
 
-        if(savedInstanceState == null) {
+        //if(savedInstanceState == null) {
             supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
             navview.setCheckedItem(R.id.login)
-        }
+        //}
 
 
         linearLayoutManager = LinearLayoutManager(this)
@@ -141,9 +141,16 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         })
     }
 
-    private fun getArticles(){
-        //val service = getService()
-        val call = service.articles()
+    private fun getArticles(nextId: Int? = 0, feedId: Int? = 0){
+
+        val call : Call<Articles>
+        if(nextId == 0) {
+            call = service.articles(20, null)
+        }
+        else {
+            call = service.articlesById(nextId!!.toInt(), 20, feedId)
+        }
+
 
         call.enqueue(object: Callback<Articles> {
             override fun onResponse( call: Call<Articles>, response: Response<Articles>) {
