@@ -12,7 +12,14 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_gravity="center_horizontal"
-        android:layout_marginTop="80dp"
+        android:layout_margin="30dp"
+        android:id="@+id/login_error_message"/>
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
+        android:layout_marginTop="20dp"
         android:text="@string/login_label"
         android:textSize="20sp"
         android:textColor="@color/black"/>
@@ -61,7 +68,8 @@
         android:text="@string/nog_geen_account"
         android:layout_gravity="center_horizontal"
         android:layout_marginTop="10dp"
-        android:id="@+id/nog_geen_account_button"/>
+        android:id="@+id/nog_geen_account_button"
+        android:textAllCaps="false"/>
 
 
 </LinearLayout>

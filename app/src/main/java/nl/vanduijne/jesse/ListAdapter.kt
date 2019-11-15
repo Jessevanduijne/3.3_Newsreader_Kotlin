@@ -6,6 +6,7 @@ import android.view.View
 import android.view.ViewGroup
 import android.widget.ImageView
 import android.widget.TextView
+import androidx.core.view.isVisible
 import androidx.recyclerview.widget.RecyclerView
 import com.bumptech.glide.Glide
 import com.bumptech.glide.request.RequestOptions
@@ -17,6 +18,7 @@ class ListAdapter (val context: Context, val items: ArrayList<Article>, val clic
     class ViewHolder(itemView: View): RecyclerView.ViewHolder(itemView) {
         val title: TextView = itemView.listitemtitle
         val image: ImageView = itemView.listitemimage
+        val like: ImageView = itemView.listitemlike
     }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): ViewHolder {
@@ -27,8 +29,13 @@ class ListAdapter (val context: Context, val items: ArrayList<Article>, val clic
     override fun getItemCount(): Int = items.size
 
     override fun onBindViewHolder(holder: ViewHolder, position: Int) {
-        val item = items[position] // list.get(position)
+        val item = items[position]
         holder.title.text = item.Title
+
+        if(item.IsLiked) {
+            holder.like.isVisible = true
+        }
+        else holder.like.isVisible = false
 
         val requestOption =
             RequestOptions().placeholder(R.drawable.placeholder).centerCrop() // Create placeholder
@@ -37,9 +44,5 @@ class ListAdapter (val context: Context, val items: ArrayList<Article>, val clic
         holder.itemView.setOnClickListener {
             clickListener.onItemClick(holder.adapterPosition)
         }
-
     }
-
-
-
 }

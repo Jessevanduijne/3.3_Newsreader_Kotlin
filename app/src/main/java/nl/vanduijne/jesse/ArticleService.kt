@@ -1,10 +1,6 @@
 package nl.vanduijne.jesse
 
-import nl.vanduijne.jesse.model.Article
-import nl.vanduijne.jesse.model.Articles
-import nl.vanduijne.jesse.model.Category
-import nl.vanduijne.jesse.model.DefaultResponse
-import okhttp3.RequestBody
+import nl.vanduijne.jesse.model.*
 import retrofit2.Call
 import retrofit2.http.*
 
@@ -13,40 +9,52 @@ interface ArticleService {
     fun feeds(): Call<List<Category>>
 
     @GET("api/articles")
-    fun articles(@Query("count") count: Int? = 20,
-                 @Query("feed") feedId: Int? = null
+    fun articles(
+        @Header("x-authtoken") authentication: String? = null,
+        @Query("count") count: Int? = 20,
+        @Query("feed") feedId: Int? = null
     ): Call<Articles>
 
     @GET("api/articles/{id}")
-    fun articlesById(@Path("id") articleId: Int,
-                    @Query("count") count: Int? = 20,
-                    @Query("feed") feedId: Int? = null
+    fun articlesById(
+        @Header("x-authtoken") authentication: String? = null,
+        @Path("id") nextId: Int,
+        @Query("count") count: Int? = 20,
+        @Query("feed") feedId: Int? = null
     ): Call<Articles>
 
 
+    @GET("api/articles/liked")
+    fun getLikedArticles(
+        @Header("x-authtoken") authentication: String,
+        @Query("count") count: Int? = 20,
+        @Query("feed") feedId: Int? = null
+    ): Call<Articles>
 
-
-
-    @Multipart
     @PUT("api/articles/{id}//like")
-    fun addLike(
-        @Part("article") article: RequestBody,
-        @Part("like") like: RequestBody
-    ): Call<Article>
+    fun likeArticle (
+        @Header("x-authtoken") authentication: String,
+        @Path("id") articleId: Int
+    ): Call<Void>
 
     @DELETE("api/articles/{id}//like")
     fun deleteLike(
-        @Part("article") article: RequestBody,
-        @Part("like") like: RequestBody
-    ): Call<Article>
+        @Header("x-authtoken") authentication: String,
+        @Path("id") articleId: Int
+    ): Call<Void>
 
-    // TODO: Check if this is correct, powerpoint has multiple versions of writing a post
+
+    @FormUrlEncoded
     @POST("api/users/register")
     fun register(
         @Field("username") username: String,
         @Field("password") password: String
-    ): Call<DefaultResponse>
+    ): Call<RegisterResponse>
 
+    @FormUrlEncoded
     @POST("api/users/login")
-    fun login() // TODO: create call
+    fun login(
+        @Field("username") username: String,
+        @Field("password") password: String
+    ): Call<LoginResponse>
 }

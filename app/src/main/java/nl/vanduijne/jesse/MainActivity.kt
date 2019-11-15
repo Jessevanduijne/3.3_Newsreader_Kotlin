@@ -1,6 +1,7 @@
 package nl.vanduijne.jesse
 
 import android.app.PendingIntent.getService
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.util.Log
@@ -40,65 +41,60 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private val articles = ArrayList<Article>()
     private val service = getService()
 
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Link content to this class
         setContentView(R.layout.activity_main)
-
-        // Add toolbar
         setSupportActionBar(toolbar)
 
         // Add drawer toggle
-        drawer = drawer_layout
-        val toggleableDrawer = ActionBarDrawerToggle(this, drawer, toolbar,
-            R.string.navigation_drawer_open, R.string.navigation_drawer_close)
-        drawer.addDrawerListener(toggleableDrawer)
-        toggleableDrawer.syncState()
-
-        // Add button functionality for drawer
-        var navview = nav_view
-        navview.setNavigationItemSelectedListener(this)
-
-        //if(savedInstanceState == null) {
-            //supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
-            //navview.setCheckedItem(R.id.login)
-        //}
+        getNavigationDrawer()
 
         linearLayoutManager = LinearLayoutManager(this)
-
         getArticles()
         getScrollListener()
     }
 
-    override fun onNavigationItemSelected(item: MenuItem): Boolean {
-        when(item.itemId) {
-            R.id.login -> {
-                val intent = Intent(this, LoginActivity::class.java)
-                startActivity(intent)
-            } //supportFragmentManager.beginTransaction().replace(R.id.fragment_container, LoginFragment())
-            R.id.cat_algemeen -> Toast.makeText(this, "algemeen", Toast.LENGTH_SHORT).show()
-            else -> {
-                return false
-            }
-        }
+    private fun getNavigationDrawer(){
+        setDrawerLoginState() // show logout button, favs etc.
 
-        drawer.closeDrawer(GravityCompat.START)
+        drawer = drawer_layout
+        val toggleableDrawer = ActionBarDrawerToggle(this, drawer, toolbar, R.string.navigation_drawer_open, R.string.navigation_drawer_close)
+        drawer.addDrawerListener(toggleableDrawer)
+        toggleableDrawer.syncState()
 
-        // Item will be selected after action is triggered --> always true
-        return true
+        // Add button functionality for drawer
+        nav_view.setNavigationItemSelectedListener(this)
     }
 
+    private fun setDrawerLoginState(){
+        val favourites = nav_view.menu.findItem(R.id.favourites)
+        val logout = nav_view.menu.findItem(R.id.logout)
+        val login = nav_view.menu.findItem(R.id.login)
 
-
-    override fun onBackPressed() {
-        if(drawer.isDrawerOpen(GravityCompat.START)) {
-            drawer.closeDrawer(GravityCompat.START)
+        if(isLoggedIn()) {
+            logout.setVisible(true)
+            favourites.setVisible(true)
+            login.setVisible(false)
         }
         else {
-            super.onBackPressed()
+            logout.setVisible(false)
+            favourites.setVisible(false)
+            login.setVisible(true)
         }
+    }
+
+    private fun getAuthToken(): String? {
+        val sharedPrefs = getSharedPreferences("nl.vanduijne.jesse", Context.MODE_PRIVATE)
+        val authTokenKey = getString(R.string.authTokenKey)
+        val authToken = sharedPrefs.getString(authTokenKey, "")
+        return if(authToken != "") authToken
+        else authToken
+    }
+
+    private fun isLoggedIn(): Boolean {
+        val authToken = getAuthToken()
+        return authToken != null && authToken != ""
     }
 
     private fun getClickListener() : ArticleClickListener {
@@ -125,11 +121,14 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
 
     private fun getNewArticles(nextId: Int, feedId: Int? = 0){
         val call: Call<Articles>
-        if(feedId != 0) {
-            call = service.articlesById(nextId, feedId = feedId)
-        }
-
-        else call = service.articlesById(nextId)
+        if(feedId != 0)
+            if(isLoggedIn())
+                call = service.articlesById(nextId = nextId, feedId = feedId, authentication = getAuthToken())
+            else call = service.articlesById(nextId = nextId, feedId = feedId)
+        else
+            if(isLoggedIn())
+                call = service.articlesById(nextId = nextId, authentication = getAuthToken())
+            else call = service.articlesById(nextId = nextId)
 
         call.enqueue(object : Callback<Articles> {
             override fun onResponse(call: Call<Articles>, response: Response<Articles>) {
@@ -139,6 +138,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     articles.addAll(result!!)
                     recyclerview.adapter!!.notifyDataSetChanged()
                 }
+                else Log.e("HTTP Response", "Response is unsuccessful of empty")
             }
             override fun onFailure(call: Call<Articles>, t: Throwable) {
                 Log.e("HTTP", "Couldn't fetch any data while trying to load more articles")
@@ -147,7 +147,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     private fun getArticles(){
-        val call = service.articles(20)
+        val call: Call<Articles>
+        if(isLoggedIn())
+            call = service.articles(authentication = getAuthToken())
+        else
+            call = service.articles()
 
         call.enqueue(object: Callback<Articles> {
             override fun onResponse( call: Call<Articles>, response: Response<Articles>) {
@@ -188,21 +192,62 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         return service
     }
 
+    private fun logout() {
+        val sharedPrefs = getSharedPreferences("nl.vanduijne.jesse", Context.MODE_PRIVATE)
+        val authTokenKey = getString(R.string.authTokenKey)
+        sharedPrefs.edit().remove(authTokenKey).apply()
+        setDrawerLoginState() // Add login, remove favourites & logout buttons
+
+        finish()
+        startActivity(getIntent())
+    }
+
     private fun createInterface(position: Int, articles: ArrayList<Article>) {
         val intent = Intent(this@MainActivity, ArticleDetail::class.java)
         val item = articles[position]
 
-        intent.putExtra("detailtitle", item.Title)
-        intent.putExtra("detailsummary", item.Summary)
-        intent.putExtra("detailimage", item.Image)
-        intent.putExtra("detailurl", item.Url)
-        intent.putExtra("detaildate", item.PublishDate)
+        intent.putExtra("detail_title", item.Title)
+        intent.putExtra("detail_summary", item.Summary)
+        intent.putExtra("detail_image", item.Image)
+        intent.putExtra("detail_url", item.Url)
+        intent.putExtra("detail_date", item.PublishDate)
+        intent.putExtra("detail_id", item.Id)
+        intent.putExtra("detail_liked", item.IsLiked)
         startActivity(intent)
+    }
+
+    override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        when(item.itemId) {
+            R.id.login -> {
+                val intent = Intent(this, LoginActivity::class.java)
+                startActivity(intent)
+            }
+            R.id.logout -> logout()
+            R.id.cat_algemeen -> Toast.makeText(this, "algemeen", Toast.LENGTH_SHORT).show()
+            else -> {
+                return false
+            }
+        }
+
+        drawer.closeDrawer(GravityCompat.START)
+
+        // Item will be selected after action is triggered --> always true
+        return true
+    }
+
+    override fun onBackPressed() {
+        if(drawer.isDrawerOpen(GravityCompat.START)) {
+            drawer.closeDrawer(GravityCompat.START)
+        }
+        else {
+            super.onBackPressed()
+        }
     }
 
     override fun onCreateOptionsMenu(menu: Menu): Boolean {
         // Inflate the menu; this adds items to the action bar if it is present.
         menuInflater.inflate(R.menu.menu_main, menu)
+
         return true
     }
 
@@ -215,5 +260,4 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
             else -> super.onOptionsItemSelected(item)
         }
     }
-
 }

@@ -17,23 +17,22 @@
             android:orientation="vertical">
 
             <ImageView
-                android:id="@+id/detailimage"
+                android:id="@+id/detail_image"
                 android:layout_width="match_parent"
                 android:layout_height="300dp"
                 android:background="@color/black"
                 android:scaleType="centerCrop"/>
 
             <com.google.android.material.floatingactionbutton.FloatingActionButton
-                android:id="@+id/like"
+                android:id="@+id/like_button"
                 android:layout_width="227dp"
                 android:layout_height="wrap_content"
-                android:layout_marginLeft="330dp"
+                android:layout_marginStart="330dp"
                 android:layout_marginTop="-30dp"
                 app:srcCompat="@drawable/ic_emptyheart" />
 
             <TextView
-                android:id="@+id/detailtitle"
-                android:layout_below="@id/detailimage"
+                android:id="@+id/detail_title"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:textSize="30sp"
@@ -41,37 +40,34 @@
                 android:layout_margin="10dp"/>
 
             <TextView
-                android:id="@+id/detaildate"
+                android:id="@+id/detail_date"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:layout_margin="10dp"
-                android:layout_below="@+id/detailtitle"
                 android:textColor="@color/lightgrey"/>
 
             <TextView
-                android:id="@+id/detailsummary"
+                android:id="@+id/detail_summary"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@+id/detaildate"
                 android:textSize="15sp"
                 android:layout_margin="10dp"
                 android:textColor="@color/white"/>
 
-            <TextView
-                android:id="@+id/deletethis"
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
-                android:layout_below="@+id/detailsummary"
-                android:textSize="15sp"
-                android:layout_margin="10dp"
-                android:textColor="@color/white"
-                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"/>
+<!--            <TextView-->
+<!--                android:id="@+id/deletethis"-->
+<!--                android:layout_width="wrap_content"-->
+<!--                android:layout_height="wrap_content"-->
+<!--                android:layout_below="@+id/detailsummary"-->
+<!--                android:textSize="15sp"-->
+<!--                android:layout_margin="10dp"-->
+<!--                android:textColor="@color/white"-->
+<!--                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"/>-->
 
             <TextView
-                android:id="@+id/detailurl"
+                android:id="@+id/detail_url"
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
-                android:layout_below="@id/detailsummary"
                 android:textColor="@color/lightgrey"
                 android:layout_margin="10dp"
                 android:linksClickable="true"
