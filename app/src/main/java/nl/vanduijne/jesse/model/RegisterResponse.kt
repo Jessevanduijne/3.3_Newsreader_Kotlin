@@ -1,6 +1,6 @@
 package nl.vanduijne.jesse.model
 
-data class DefaultResponse (
+data class RegisterResponse (
     val Success: Boolean,
     val Message: String
 )
