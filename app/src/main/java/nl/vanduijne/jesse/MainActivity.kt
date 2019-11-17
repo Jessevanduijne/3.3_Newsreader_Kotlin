@@ -54,7 +54,7 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         getArticles()
         getScrollListener()
 
-        // Test 3
+        // Test 4
     }
 
     private fun getNavigationDrawer(){
