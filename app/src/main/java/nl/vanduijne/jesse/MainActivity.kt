@@ -53,6 +53,8 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         linearLayoutManager = LinearLayoutManager(this)
         getArticles()
         getScrollListener()
+
+        // Test
     }
 
     private fun getNavigationDrawer(){
