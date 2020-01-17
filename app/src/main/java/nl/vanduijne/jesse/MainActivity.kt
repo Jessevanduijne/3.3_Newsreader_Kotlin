@@ -1,6 +1,5 @@
 package nl.vanduijne.jesse
 
-import android.app.PendingIntent.getService
 import android.content.Context
 import android.content.Intent
 import android.os.Bundle
@@ -8,6 +7,7 @@ import android.util.Log
 import androidx.appcompat.app.AppCompatActivity
 import android.view.Menu
 import android.view.MenuItem
+import android.view.View
 import android.widget.Toast
 import androidx.appcompat.app.ActionBarDrawerToggle
 import androidx.core.view.GravityCompat
@@ -16,18 +16,15 @@ import androidx.navigation.ui.AppBarConfiguration
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.navigation.NavigationView
-import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
 import kotlinx.android.synthetic.main.content_main.*
+import nl.vanduijne.jesse.helpers.hideSpinner
+import nl.vanduijne.jesse.helpers.showSpinner
 import nl.vanduijne.jesse.model.Articles
 import nl.vanduijne.jesse.model.Article
-import okhttp3.OkHttpClient
 import retrofit2.Call
 import retrofit2.Callback
 import retrofit2.Response
-import retrofit2.Retrofit
-import retrofit2.converter.gson.GsonConverterFactory
-import java.util.concurrent.TimeUnit
 
 
 class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelectedListener {
@@ -39,7 +36,11 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     private val lastVisibleItemPosition: Int
         get() = linearLayoutManager.findLastVisibleItemPosition()
     private val articles = ArrayList<Article>()
-    private val service = getService()
+    private val service = nl.vanduijne.jesse.helpers.getService()
+
+    private var isFavourites = false
+    private var activeCall = false
+    private var currentCategory = 0
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -48,13 +49,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         setSupportActionBar(toolbar)
 
         // Add drawer toggle
+        showSpinner(mainscreen)
         getNavigationDrawer()
-
         linearLayoutManager = LinearLayoutManager(this)
         getArticles()
         getScrollListener()
+        setOnRefreshListener()
+    }
 
-        // Test 6
+    private fun setOnRefreshListener(){
+        swipe_refresh_articles.setOnRefreshListener {
+            if(!activeCall) {
+                hideSpinner(mainscreen)
+                articles.clear()
+                if(!isFavourites) {
+                    getArticles()
+                }
+                else getFavouriteArticles()
+            }
+        }
     }
 
     private fun getNavigationDrawer(){
@@ -111,17 +124,21 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         recyclerview.addOnScrollListener(object: RecyclerView.OnScrollListener(){
             override fun onScrollStateChanged(recyclerView: RecyclerView, newState: Int) {
                 super.onScrollStateChanged(recyclerView, newState)
-                val totalItemCount = recyclerView.layoutManager!!.itemCount // recyclerView.adapter!!.getItemCount()
-                if(totalItemCount == lastVisibleItemPosition + 1 ) { // Plus one cause count = 20 and position is 19 (starts at 0)
-                    println("hitting the onscroll")
-                    val nextId = articles[lastVisibleItemPosition].Id - 1
-                    getNewArticles(nextId = nextId)
+                if(!isFavourites && !activeCall) {
+                    val totalItemCount = recyclerView.layoutManager!!.itemCount
+                    if(totalItemCount == lastVisibleItemPosition + 1 ) {
+                        val nextId = articles[lastVisibleItemPosition].Id - 1
+                        activeCall = true
+                        getNewArticles(nextId = nextId)
+                    }
                 }
             }
         })
     }
 
-    private fun getNewArticles(nextId: Int, feedId: Int? = 0){
+    private fun getNewArticles(nextId: Int){
+        val feedId = currentCategory
+        showSpinner(mainscreen)
         val call: Call<Articles>
         if(feedId != 0)
             if(isLoggedIn())
@@ -140,20 +157,25 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     articles.addAll(result!!)
                     recyclerview.adapter!!.notifyDataSetChanged()
                 }
-                else Log.e("HTTP Response", "Response is unsuccessful of empty")
+                else Log.e(getString(R.string.log_http_tag), getString(R.string.log_unsuccesful))
+                hideSpinner(mainscreen)
+                activeCall = false
             }
             override fun onFailure(call: Call<Articles>, t: Throwable) {
-                Log.e("HTTP", "Couldn't fetch any data while trying to load more articles")
+                Log.e(getString(R.string.log_http_tag), getString(R.string.log_no_data_articles))
+                hideSpinner(mainscreen)
+                activeCall = false
             }
         })
     }
 
     private fun getArticles(){
+        val feedId = currentCategory
         val call: Call<Articles>
         if(isLoggedIn())
-            call = service.articles(authentication = getAuthToken())
+            call = service.articles(authentication = getAuthToken(), feedId = feedId)
         else
-            call = service.articles()
+            call = service.articles(feedId = feedId)
 
         call.enqueue(object: Callback<Articles> {
             override fun onResponse( call: Call<Articles>, response: Response<Articles>) {
@@ -163,11 +185,15 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
                     result?.toCollection(articles) // Make articles accessible for the recyclerview
                     recyclerview.adapter!!.notifyDataSetChanged()
                 }
-                else Log.e("HTTP Response", "Response is unsuccessful of empty")
+                else Log.e(getString(R.string.log_http_tag), getString(R.string.log_no_data))
+                hideSpinner(mainscreen)
+                swipe_refresh_articles.isRefreshing = false
             }
 
             override fun onFailure(call: Call<Articles>, t: Throwable) {
-                Log.e("HTTP", "Couldn't fetch any data: ")
+                Log.e(getString(R.string.log_http_tag), getString(R.string.log_no_data))
+                hideSpinner(mainscreen)
+                swipe_refresh_articles.isRefreshing = false
             }
         })
 
@@ -177,21 +203,47 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         recyclerview.adapter = ListAdapter(this, articles, articleClickListener)
     }
 
-    private fun getService(): ArticleService {
-        val okHttpClient = OkHttpClient().newBuilder()
-            .connectTimeout(30, TimeUnit.SECONDS)
-            .readTimeout(30, TimeUnit.SECONDS)
-            .writeTimeout(30, TimeUnit.SECONDS)
-            .build()
+    private fun getFavouriteArticles(){
+        val authToken = getAuthToken()
+        val call: Call<Articles> = service.getLikedArticles(authToken!!)
 
-        val retrofit = Retrofit.Builder()
-            .baseUrl("http://inhollandbackend.azurewebsites.net/")
-            .client(okHttpClient)
-            .addConverterFactory(GsonConverterFactory.create())
-            .build()
+        call.enqueue(object: Callback<Articles> {
+            override fun onResponse(call: Call<Articles>, response: Response<Articles>) {
+                if(response.isSuccessful && response.body() != null) {
+                    val body = response.body()
+                    val result = body?.Results
+                    result?.toCollection(articles) // Make articles accessible for the recyclerview
+                    recyclerview.adapter!!.notifyDataSetChanged()
+                }
+                else Log.e(getString(R.string.log_http_tag), getString(R.string.log_response_unsuccessful))
+                hideSpinner(mainscreen)
+                swipe_refresh_articles.isRefreshing = false
+                showMessage()
+            }
 
-        val service = retrofit.create(ArticleService::class.java)
-        return service
+            override fun onFailure(call: Call<Articles>, t: Throwable) {
+                Log.e(getString(R.string.log_http_tag), getString(R.string.log_no_data))
+                hideSpinner(mainscreen)
+                swipe_refresh_articles.isRefreshing = false
+            }
+        })
+
+        // After articles are loaded, make them clickable:
+        val articleClickListener = getClickListener()
+        recyclerview.layoutManager = linearLayoutManager
+        recyclerview.adapter = ListAdapter(this, articles, articleClickListener)
+    }
+
+    private fun showMessage(){
+        if(articles.count() == 0) {
+            favourites_list_empty.visibility = View.VISIBLE
+            recyclerview.visibility = View.GONE
+        }
+    }
+
+    private fun hideMessage(){
+        recyclerview.visibility = View.VISIBLE
+        favourites_list_empty.visibility = View.GONE
     }
 
     private fun logout() {
@@ -219,22 +271,67 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
     }
 
     override fun onNavigationItemSelected(item: MenuItem): Boolean {
+        hideMessage()
         when(item.itemId) {
             R.id.login -> {
                 val intent = Intent(this, LoginActivity::class.java)
                 startActivity(intent)
             }
             R.id.logout -> logout()
-            R.id.cat_algemeen -> Toast.makeText(this, "algemeen", Toast.LENGTH_SHORT).show()
+            R.id.all_articles -> {
+                isFavourites = false
+                showSpinner(mainscreen)
+                articles.clear()
+                getArticles()
+            }
+            R.id.favourites -> {
+                isFavourites = true
+                showSpinner(mainscreen)
+                articles.clear()
+                getFavouriteArticles()
+            }
+            R.id.cat_algemeen -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 1
+                getArticles()
+            }
+            R.id.cat_internet -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 2
+                getArticles()
+            }
+            R.id.cat_sport -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 3
+                getArticles()
+            }
+            R.id.cat_opmerkelijk -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 4
+                getArticles()
+            }
+            R.id.cat_games -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 5
+                getArticles()
+            }
+            R.id.cat_wetenschap -> {
+                showSpinner(mainscreen)
+                articles.clear()
+                currentCategory = 6
+                getArticles()
+            }
             else -> {
                 return false
             }
         }
-
         drawer.closeDrawer(GravityCompat.START)
-
-        // Item will be selected after action is triggered --> always true
-        return true
+        return true // Item will be selected after action is triggered --> always true
     }
 
     override fun onBackPressed() {
@@ -251,15 +348,5 @@ class MainActivity : AppCompatActivity(), NavigationView.OnNavigationItemSelecte
         menuInflater.inflate(R.menu.menu_main, menu)
 
         return true
-    }
-
-    override fun onOptionsItemSelected(item: MenuItem): Boolean {
-        // Handle action bar item clicks here. The action bar will
-        // automatically handle clicks on the Home/Up button, so long
-        // as you specify a parent activity in AndroidManifest.xml.
-        return when (item.itemId) {
-            R.id.action_settings -> true
-            else -> super.onOptionsItemSelected(item)
-        }
     }
 }

@@ -13,6 +13,7 @@
     <string name="msg_account_bestaat_al">Gebruikersnaam bestaat al, probeer een andere naam</string>
     <string name="msg_verkeerde_gegevens">Verkeerde gebruikersnaam of wachtwoord. Probeer opnieuw (mogelijk bestaat het account nog niet)</string>
     <string name="msg_account_aangemaakt">Account aangemaakt, u kunt inloggen</string>
+    <string name="msg_empty_list">U heeft nog geen favoriete artikelen</string>
 
     <!-- Navigation drawer: -->
     <string name="navigation_drawer_open">Open menu</string>
@@ -21,6 +22,7 @@
     <string name="login">Login</string>
     <string name="logout">Logout</string>
     <string name="favourites">Favorieten</string>
+    <string name="all_articles">Alle artikelen</string>
 
     <string name="cat">Categorieën</string>
     <string name="cat_algemeen">Algemeen</string>
@@ -33,5 +35,12 @@
     <string name="nav_title">Tijd voor Actualiteit</string>
     <string name="nav_subtitle">Het beste nieuws van Nederland!</string>
 
-    <!-- Detail view: -->
+    <!-- LOGS -->
+    <string name="log_unsuccesful">Response is unsuccessful of empty</string>
+    <string name="log_no_data_articles">Couldn\'t fetch any data while trying to load more articles</string>
+    <string name="log_no_data">Couldn\'t fetch any data</string>
+    <string name="log_response_unsuccessful">Response is unsuccessful of empty</string>
+    <string name="log_http_tag">HTTP</string>
+
+
 </resources>

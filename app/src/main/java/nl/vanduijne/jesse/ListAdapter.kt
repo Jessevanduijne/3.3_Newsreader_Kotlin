@@ -32,10 +32,7 @@ class ListAdapter (val context: Context, val items: ArrayList<Article>, val clic
         val item = items[position]
         holder.title.text = item.Title
 
-        if(item.IsLiked) {
-            holder.like.isVisible = true
-        }
-        else holder.like.isVisible = false
+        holder.like.isVisible = item.IsLiked
 
         val requestOption =
             RequestOptions().placeholder(R.drawable.placeholder).centerCrop() // Create placeholder

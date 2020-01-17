@@ -12,6 +12,10 @@
             android:icon="@drawable/ic_login"
             android:title="@string/logout"/>
         <item
+            android:id="@+id/all_articles"
+            android:icon="@drawable/ic_all_articles"
+            android:title="@string/all_articles"/>
+        <item
             android:id="@+id/favourites"
             android:icon="@drawable/ic_heart"
             android:title="@string/favourites"/>

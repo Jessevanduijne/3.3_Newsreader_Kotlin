@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.util.Log
 import android.view.MenuItem
+import android.view.View
+import android.view.inputmethod.InputMethodManager
 import kotlinx.android.synthetic.main.activity_login.*
 import kotlinx.android.synthetic.main.activity_main.*
 import nl.vanduijne.jesse.model.LoginResponse
@@ -47,8 +49,12 @@ class LoginActivity : AppCompatActivity() {
                         if(success){
                             login_error_message.text = getString(R.string.msg_account_aangemaakt)
                             switchToLogin()
+                            hideKeyboard(login_screen)
                         }
-                        else login_error_message.text = getString(R.string.msg_account_bestaat_al)
+                        else {
+                            login_error_message.text = getString(R.string.msg_account_bestaat_al)
+                            hideKeyboard(login_screen)
+                        }
                     }
                 }
                 override fun onFailure(call: Call<RegisterResponse>, t: Throwable) {
@@ -148,5 +154,10 @@ class LoginActivity : AppCompatActivity() {
         logout.setVisible(true)
         favourites.setVisible(true)
         login.setVisible(false)
+    }
+
+    private fun Context.hideKeyboard(view: View) {
+        val inputMethodManager = getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager
+        inputMethodManager.hideSoftInputFromWindow(view.windowToken, 0)
     }
 }

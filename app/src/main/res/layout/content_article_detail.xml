@@ -6,11 +6,9 @@
     android:layout_height="wrap_content"
     app:layout_behavior="@string/appbar_scrolling_view_behavior"
     android:orientation="vertical">
-
     <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content">
-
+        android:layout_height="wrap_content" >
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
@@ -54,16 +52,6 @@
                 android:layout_margin="10dp"
                 android:textColor="@color/white"/>
 
-<!--            <TextView-->
-<!--                android:id="@+id/deletethis"-->
-<!--                android:layout_width="wrap_content"-->
-<!--                android:layout_height="wrap_content"-->
-<!--                android:layout_below="@+id/detailsummary"-->
-<!--                android:textSize="15sp"-->
-<!--                android:layout_margin="10dp"-->
-<!--                android:textColor="@color/white"-->
-<!--                android:text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum"/>-->
-
             <TextView
                 android:id="@+id/detail_url"
                 android:layout_width="wrap_content"
@@ -74,4 +62,5 @@
                 android:autoLink="web" />
         </LinearLayout>
     </ScrollView>
+
 </RelativeLayout>
